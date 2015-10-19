@@ -160,7 +160,8 @@ page.onLoadFinished = function() {
                 doSearch();
                 break;
             default:
-                console.log("switch: " + url);
+                console.log("Error: " + url);
+                dosearch();
                 break;
         }
 
@@ -171,8 +172,8 @@ page.onLoadFinished = function() {
             // selects for origin & destination
             var $orig = $("#asmSelect0");
             var $dest = $("#asmSelect1");
-            //                var miami = "6_10_12";
-            var miami = "1_0_0";
+            //var miami = "6_10_12";
+            var miami = "6_10_12";
 
             $orig.val(miami).change();
             $dest.val(miami).change();
@@ -194,30 +195,45 @@ page.onLoadFinished = function() {
         function found() {
 
             var $results = $('.odd, .even');
+            var found = false;
+            var greedy = -1;
+            var I = -1;
 
-            var id = $('.odd > td:nth-child(1)').html().trim();
-            var cars = $('.odd > td:nth-child(2)').html().trim();
-            var model = $('.odd > td:nth-child(3)').html().trim();
-            var origCity = $('.odd > td:nth-child(4)').html().trim();
-            var origargse = $('.odd > td:nth-child(5)').html().trim();
-            var destCity = $('.odd > td:nth-child(6)').html().trim();
-            var destargse = $('.odd > td:nth-child(7)').html().trim();
-            var milage = $('.odd > td:nth-child(8)').html().trim();
-            var priceShip = $('.odd > td:nth-child(9)').html().trim();
-            var priceMile = $('.odd > td:nth-child(10)').html().trim();
-            var $view = $('.odd > td:nth-child(11) > a:nth-child(1)');
-            var comments = $('.odd > td:nth-child(12)').html().trim();
+            for( var i=0;i<$results.length;i++){
 
+              var id= $($results[i]).find("> td:nth-child(1)").html().trim();
+              var cars = $($results[i]).find('td:nth-child(2)').html().trim();
+              var model = $($results[i]).find('td:nth-child(3)').html().trim();
+              var origCity = $($results[i]).find('td:nth-child(4)').html().trim();
+              var origargse = $($results[i]).find('td:nth-child(5)').html().trim();
+              var destCity = $($results[i]).find('td:nth-child(6)').html().trim();
+              var destargse = $($results[i]).find('td:nth-child(7)').html().trim();
+              var milage = $($results[i]).find('td:nth-child(8)').html().trim();
+              var priceShip = $($results[i]).find('td:nth-child(9)').html().trim().split('$')[1];
+              var priceMile = $($results[i]).find('td:nth-child(10)').html().trim().split('$')[1];
+              var $view = $($results[i]).find('td:nth-child(11) > a:nth-child(1)');
+              var comments = $($results[i]).find('td:nth-child(12)').html().trim();
 
-
-            if (milage < milageLimit) {
-                window.location.href = $view.attr('href');
-            } else {
-                console.log("Load " + id + " exceeds milage " + milage);
-                // FIXME do something better here, get next result if available              
-                dosearch();
+              if (Number(milage) < Number(milageLimit)) {
+                  found = true;
+                  if(Number(greedy) < Number(priceShip)){
+                    greedy=priceShip;
+                    I=i;
+                  }
+              } else {
+                  console.log("Load " + id + " exceeds milage " + milage);
+              }
             }
-        }
+
+            if(found){
+              // get largest
+              console.log("Multiple found, selected largest");
+              console.log($($results[I]).find('td:nth-child(9)').html().trim().split('$')[1]);
+              window.location.href = $($results[I]).find('td:nth-child(11) > a:nth-child(1)').attr('href');
+            }else{
+              dosearch();
+            }
+      }
 
         //https://www.carsarrive.com/tab/Transport/ViewLoadShort.asp?nload_id=4907345&npickup_code=
         function ViewLoadShort() {
@@ -246,8 +262,8 @@ page.onLoadFinished = function() {
             $delivery_date.val(delivery);
             $rapid_ach.click();
 
-            //  $continue1.click();
-            dosearch();
+            $continue1.click();
+            //dosearch();
         }
 
 
