@@ -3,37 +3,52 @@ var sys = require("system"),
     logResources = false,
     jquery = "https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js";
 
+// TODO not available date select max available DONE!
+// TODO minimum on price
 
 page.open('https://login.carsarrive.com/', function() {
     page.includeJs(jquery, function() {
         page.evaluate(function() {
 
+            $.ajax({
+                accept: "application/json",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                url: "https://carsarrive.firebaseio.com/server/.json",
+                headers: {
+                    "X-HTTP-Method-Override": "PATCH"
+                },
+                data: JSON.stringify({
+                    "timestamp": (new Date()).toString()
+                }),
+                success: function() {
 
-            $.get("https://carsarrive.firebaseio.com/.json", function(data) {
-                if (typeof window.callPhantom === 'function') {
-                    var args = window.callPhantom(data);
-                    //alert(args);
-                }
+                        $.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
+                            if (typeof window.callPhantom === 'function') {
+                                //                                      var args = window.callPhantom(data);
+                                window.callPhantom(data);
+                                //alert(args);
+                            }
+                            //console.log(JSON.stringify(data));                                  
 
+                            var today = new Date();
+                            var appdate = new Date(data.date);
+                            if (appdate < today) {
+                                console.log("Failed datecheck");
+                                return;
+                            }
 
-                console.log(JSON.stringify(data));
-                
+                            if ($('#edit-name--2').length == 1) {
+                                console.log("Logging in");
+                                $('#edit-name--2').val(data.usr).change();
+                                $('#edit-pass--2').val(data.pwd).change();
+                                $('#edit-submit--2').click();
+                            }
+                        }); //$.get
+                    } // success
+            }); //$.ajax
 
-                var today = new Date();
-                var appdate = new Date(data.date);
-                if(appdate<today){
-                  console.log("Failed datecheck");
-                  return;
-                }
-
-
-                if ($('#edit-name--2').length == 1) {
-                    console.log("Logging in");
-                    $('#edit-name--2').val('marron').change();
-                    $('#edit-pass--2').val('ale5849').change();
-                    $('#edit-submit--2').click();
-                }
-            }); //$.get
         });
     });
 });
@@ -48,7 +63,7 @@ page.open('https://login.carsarrive.com/', function() {
  */
 page.onConsoleMessage = function(msg, line, source) {
     if (msg.indexOf('JQMIGRATE:') == -1 && msg.length > 0) {
-        console.log('console> ' + msg);
+        console.log(msg);
     }
 };
 
@@ -62,13 +77,8 @@ page.onAlert = function(msg) {
 
 var loads = 0;
 var args;
-/* = {
-    loads: 0,
-    date: "",
-    milage: 12345,
-    sleep: false
-};
-*/
+
+
 page.onCallback = function(data) {
     if (data) {
         args = data;
@@ -79,10 +89,11 @@ page.onCallback = function(data) {
 
 
 page.onLoadFinished = function() {
-//    console.log("page.onLoadFinished");
+    //    console.log("page.onLoadFinished");
     loads = loads + 1;
 
-    if (loads % 10 === 0 || args.sleep) {
+
+    if (loads % 25 === 0 || args.sleep) {
         firebasecheck();
     } else if (args && !args.sleep) {
         page.evaluate(main);
@@ -90,187 +101,346 @@ page.onLoadFinished = function() {
 
     function firebasecheck() {
         page.evaluate(function(main) {
-            /*
-                    $.ajax({
-                      type: "POST",
-                      url: "https://carsarrivebot.firebaseio-demo.com/.json",
-                      data: { "first": "Jack", "last": "Sparrow" },
-                      success: function(){console.log("success");},
-                      error: function(xhr, error){
-                              console.debug(xhr); console.debug(error);
-                              },
-                      dataType: "json"
-                    });
-            */
-            $.get("https://carsarrive.firebaseio.com/.json", function(data) {
+            try {
+                $.ajax({
+                    accept: "application/json",
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: "https://carsarrive.firebaseio.com/server/.json",
+                    headers: {
+                        "X-HTTP-Method-Override": "PATCH"
+                    },
+                    data: JSON.stringify({
+                        "timestamp": (new Date()).toString()
+                    }),
+                    success: function() {
 
-                if (typeof window.callPhantom === 'function') {
-                    var args = window.callPhantom(data);
-                    //alert(args);
-                }
-                //console.log(JSON.stringify(data));
-                  if(!data.sleep){
-                      main();
-                  }else{
-                     setTimeout(function() { window.location.href = "https://www.carsarrive.com/tab/TransportManager/Default.asp"; }, 6666);
+                            $.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
+                                try {
+                                    if (typeof window.callPhantom === 'function') {
+                                        var args = window.callPhantom(data);
+                                        //alert(args);
+                                    }
+                                    //console.log(JSON.stringify(data));
+                                    if (!data.sleep) {
+                                        main();
+                                    } else {
+                                        setTimeout(function() {
+                                            window.location.href = "https://www.carsarrive.com/tab/TransportManager/Default.asp";
+                                        }, 6666);
+                                    }
+                                } catch (e) {
+                                    console.log('firebasecheck(): ' + e.message);
+                                    main();
+                                }
+                            }); //$.get
+                        } // success
+                });
+            } catch (e) {
+                console.log('Error1: ' + e.message);
+                main();
+            }
 
-                      
-                  }
-            }); //$.get
         }, main); //page.evaluate
     }
 
 
     function main() {
-        var args;
-        if (typeof window.callPhantom === 'function') {
-            args = window.callPhantom();
-            //alert(args);
-        }
-
-
-        var milageLimit = args.milage;
-
-        var url = document.location.href.split('?')[0];
-        var login = 'https://login.carsarrive.com/';
-        var findLoads = 'https://www.carsarrive.com/tab/Transport/FindLoads.asp';
-        var viewLoadShort = 'https://www.carsarrive.com/tab/Transport/ViewLoadShort.asp';
-        var viewLoadComplete = 'https://www.carsarrive.com/tab/Transport/ViewLoadComplete.asp';
-        var whereToSend = 'https://www.carsarrive.com/tab/Transport/WhereToSend.asp';
-        var searchPage = 'https://www.carsarrive.com/tab/TransportManager/Default.asp';
-
-
-
-        switch (url) {
-            case login:
-                break;
-            case findLoads:
-                checkResults();
-                break;
-            case viewLoadShort:
-                ViewLoadShort();
-                break;
-            case viewLoadComplete:
-                ViewLoadComplete();
-                break;
-            case whereToSend:
-                WhereToSend('Marcos', args.date, args.date);
-                break;
-            case searchPage:
-                doSearch();
-                break;
-            default:
-                console.log("Error: " + url);
-                dosearch();
-                break;
-        }
-
-
-        function doSearch() {
-            console.log('Searching ...');
-            var submit = "#frm1 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(5) > td:nth-child(1) > a:nth-child(1)";
-            // selects for origin & destination
-            var $orig = $("#asmSelect0");
-            var $dest = $("#asmSelect1");
-            //var miami = "6_10_12";
-            var miami = "6_10_12";
-
-            $orig.val(miami).change();
-            $dest.val(miami).change();
-            $(submit).click();
-        }
-
-        function checkResults() {
-            //var results = $('#loads > tbody > tr').length;
-            var results = $('.odd, .even').length;
-            console.log("Results: " + results);
-
-            if (!results) {
-                dosearch();
-            } else {
-                found();
-            }
-        }
-
-        function found() {
-
-            var $results = $('.odd, .even');
-            var found = false;
-            var greedy = -1;
-            var I = -1;
-
-            for( var i=0;i<$results.length;i++){
-
-              var id= $($results[i]).find("> td:nth-child(1)").html().trim();
-              var cars = $($results[i]).find('td:nth-child(2)').html().trim();
-              var model = $($results[i]).find('td:nth-child(3)').html().trim();
-              var origCity = $($results[i]).find('td:nth-child(4)').html().trim();
-              var origargse = $($results[i]).find('td:nth-child(5)').html().trim();
-              var destCity = $($results[i]).find('td:nth-child(6)').html().trim();
-              var destargse = $($results[i]).find('td:nth-child(7)').html().trim();
-              var milage = $($results[i]).find('td:nth-child(8)').html().trim();
-              var priceShip = $($results[i]).find('td:nth-child(9)').html().trim().split('$')[1];
-              var priceMile = $($results[i]).find('td:nth-child(10)').html().trim().split('$')[1];
-              var $view = $($results[i]).find('td:nth-child(11) > a:nth-child(1)');
-              var comments = $($results[i]).find('td:nth-child(12)').html().trim();
-
-              if (Number(milage) < Number(milageLimit)) {
-                  found = true;
-                  if(Number(greedy) < Number(priceShip)){
-                    greedy=priceShip;
-                    I=i;
-                  }
-              } else {
-                  console.log("Load " + id + " exceeds milage " + milage);
-              }
+        try {
+            var args;
+            if (typeof window.callPhantom === 'function') {
+                args = window.callPhantom();
+                //alert(args);
             }
 
-            if(found){
-              // get largest
-              console.log("Multiple found, selected largest");
-              console.log($($results[I]).find('td:nth-child(9)').html().trim().split('$')[1]);
-              window.location.href = $($results[I]).find('td:nth-child(11) > a:nth-child(1)').attr('href');
-            }else{
-              dosearch();
+            function Results(results) {
+                var items;
+
+                this.get = function(i) {
+                    return {
+                        "id": $(items[i]).find('> td:nth-child(1)').html().trim(),
+                        "cars": $(items[i]).find('> td:nth-child(2)').html().trim(),
+                        "model": $(items[i]).find('> td:nth-child(3)').html().trim(),
+                        "origcity": $(items[i]).find('> td:nth-child(4)').html().trim(),
+                        "origargse": $(items[i]).find('> td:nth-child(5)').html().trim(),
+                        "destCity": $(items[i]).find('> td:nth-child(6)').html().trim(),
+                        "destargse": $(items[i]).find('> td:nth-child(7)').html().trim(),
+                        "milage": Number($(items[i]).find('> td:nth-child(8)').html().trim()),
+                        "priceShip": Number($(items[i]).find('> td:nth-child(9)').html().trim().split('$')[1]),
+                        "priceMile": Number($(items[i]).find('> td:nth-child(10)').html().trim().split('$')[1]),
+                        "link": $(items[i]).find('> td:nth-child(11) > a:nth-child(1)').attr('href').trim(),
+                        "comments": $(items[i]).find('> td:nth-child(12)').html().trim(),
+                        "timestamp": (new Date()).toString()
+                    };
+                };
+                items = results;
+            } // Results
+
+            var milageLimit = args.milage;
+
+            var url = document.location.href.split('?')[0];
+            var login = 'https://login.carsarrive.com/';
+            var findLoads = 'https://www.carsarrive.com/tab/Transport/FindLoads.asp';
+            var viewLoadShort = 'https://www.carsarrive.com/tab/Transport/ViewLoadShort.asp';
+            var viewLoadComplete = 'https://www.carsarrive.com/tab/Transport/ViewLoadComplete.asp';
+            var whereToSend = 'https://www.carsarrive.com/tab/Transport/WhereToSend.asp';
+            var searchPage = 'https://www.carsarrive.com/tab/TransportManager/Default.asp';
+            var confirm = 'https://www.carsarrive.com/tab/Transport/LoadAssigned2.asp';
+
+
+            switch (url) {
+                case login:
+                    break;
+                case findLoads:
+                    checkResults();
+                    break;
+                case viewLoadShort:
+                    ViewLoadShort();
+                    break;
+                case viewLoadComplete:
+                    ViewLoadComplete();
+                    break;
+                case whereToSend:
+                    WhereToSend(args.user, args.pickup, args.deliver);
+                    break;
+                case searchPage:
+                    doSearch();
+                    break;
+                case confirm:
+                    confirmed();
+                    break;
+                default:
+                    print("Error: " + url);
+                    searchAgain();
+                    break;
             }
-      }
 
-        //https://www.carsarrive.com/tab/Transport/ViewLoadShort.asp?nload_id=4907345&npickup_code=
-        function ViewLoadShort() {
-            console.log('ViewLoadShort');
-            var $accept = $('#frmYesNo > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
-            $accept.click();
+
+            function doSearch() {
+                try {
+                    print('Searching ...');
+                    var submit = "#frm1 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(5) > td:nth-child(1) > a:nth-child(1)";
+                    // selects for origin & destination
+                    var $orig = $("#asmSelect0");
+                    var $dest = $("#asmSelect1");
+                    var miami = "6_10_12";
+
+                    $orig.val(args.orig).change();
+                    $dest.val(args.dest).change();
+                    $(submit).click();
+                } catch (e) {
+                    console.log('doSearch(): ' + e.message);
+                    searchAgain();
+                }
+            }
+
+            function checkResults() {
+                //var results = $('#loads > tbody > tr').length;
+                try {
+                    var results = $('.odd, .even').length;
+                    print("Results: " + results);
+
+                    if (!results) {
+                        searchAgain();
+                    } else {
+                        found();
+                    }
+                } catch (e) {
+                    console.log('checkResults(): ' + e.message);
+                    searchAgain();
+                }
+            }
+
+            function found() {
+                try {
+                    var $results = $('.odd, .even');
+                    var found = false;
+                    var greedy = -1;
+                    var I = -1;
+
+                    var results = new Results($results);
+
+
+
+                    for (var i = 0; i < $results.length; i++) {
+
+                        if (results.get(i).milage < Number(milageLimit)) {
+                            found = true;
+                            if (Number(greedy) < results.get(i).priceShip) {
+                                greedy = results.get(i).priceShip;
+                                I = i;
+                            }
+                        } else {
+                            print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
+                        }
+                    }
+
+                    if (found) {
+                        // get largest
+                        print(JSON.stringify(results.get(I)));
+
+                        $.ajax({
+                            accept: "application/json",
+                            type: 'POST',
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            url: "https://carsarrive.firebaseio.com/loads/" + now() + "/.json",
+                            data: JSON.stringify(results.get(I)),
+                            success: function() {
+                                    window.location.href = results.get(I).link;
+                                } // success
+                        });
+
+                    } else {
+                        searchAgain();
+                    }
+                } catch (e) {
+                    console.log('found(): ' + e.message);
+                    searchAgain();
+                }
+            }
+
+            //https://www.carsarrive.com/tab/Transport/ViewLoadShort.asp?nload_id=4907345&npickup_code=
+            function ViewLoadShort() {
+                try {
+                    print('ViewLoadShort');
+                    var $accept = $('#frmYesNo > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
+
+                    if ($accept.length == 1) {
+                        $accept.click();
+                    } else {
+                        print("ViewLoadShort Failed");
+                        searchAgain();
+                    }
+                } catch (e) {
+                    console.log('ViewLoadShort(): ' + e.message);
+                    searchAgain();
+                }
+            }
+            //https://www.carsarrive.com/tab/Transport/ViewLoadComplete.asp?nload_id=4907345&npickup_code=
+            function ViewLoadComplete() {
+                try {
+                    print('ViewLoadComplete');
+                    var $continue1 = $('#frm2 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
+
+
+                    if ($continue1.length == 1) {
+                        $continue1.click();
+                    } else {
+                        print("ViewLoadComplete Failed");
+                        searchAgain();
+                    }
+                } catch (e) {
+                    console.log('ViewLoadComplete(): ' + e.message);
+                    searchAgain();
+                }
+            }
+            //https://www.carsarrive.com/tab/Transport/WhereToSend.asp
+            function WhereToSend(user, pickup, deliver) {
+                try {
+                    print('WhereToSend');
+                    var $continue1 = $('#content_contain > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(18) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(1) > a:nth-child(1)');
+                    var $username = $('#sdriver_name');
+                    var $pickup_date = $('#stransp_pickup_date');
+                    var $delivery_date = $('#stransp_delivery_date');
+                    var $rapid_ach = $('#nradTerms');
+
+                    $username.val(user).change();
+
+                    $pickup_date.val(pickup).change();
+                    if ($pickup_date.val() != pickup) {
+                        print("Failed to set $pickup_date");
+                        //$pickup_date.find("option:last").attr("selected","selected");
+                        $pickup_date[0].selectedIndex = $pickup_date[0].options.length - 1;
+                        $pickup_date.change();
+                        print($pickup_date.val());
+                    }
+
+                    $delivery_date.val(deliver).change();
+                    if ($delivery_date.val() != deliver) {
+                        print("Failed to set $delivery_date");
+                        //$delivery_date.find("option:last").attr("selected","selected");
+                        $delivery_date[0].selectedIndex = $delivery_date[0].options.length - 1;
+                        $delivery_date.change();
+                        print($delivery_date.val());
+                    }
+
+                    $rapid_ach.click();
+
+
+                    if ($continue1.length == 1) {
+                        //$continue1.click();
+                         test$continue1_click();
+                    } else {
+                        print("WhereToSend Failed");
+                        searchAgain();
+                    }
+                } catch (e) {
+                    console.log('WhereToSend(): ' + e.message);
+                    searchAgain();
+                }
+            }
+
+            function confirmed() {
+                print("Finished successfully!");
+                searchAgain();
+            }
+
+            // function to simulate a confirmed without adding the car
+            function test$continue1_click() {
+                print("THIS IS JUST A TEST!!!!");
+                window.location.href = confirm;
+            }
+
+
+            function searchAgain() {
+                try {
+                    window.location.href = searchPage;
+                } catch (e) {
+                    console.log('searchAgain(): ' + e.message);
+                    searchAgain();
+                }
+            }
+
+            function print(msg) {
+                var time = new Date();
+                var hrs = new Array((2 - time.getHours().toString().length) + 1).join('0') + time.getHours();
+                var mins = new Array((2 - time.getMinutes().toString().length) + 1).join('0') + time.getMinutes();
+                var sec = new Array((2 - time.getSeconds().toString().length) + 1).join('0') + time.getSeconds();
+                var mil = new Array((3 - time.getMilliseconds().toString().length) + 1).join('0') + time.getMilliseconds();
+
+                console.log(hrs + ":" + mins + ":" + sec + ":" + mil + " > " + msg);
+
+            }
+
+            function now() {
+
+                var time = new Date();
+                var yrs = time.getFullYear();
+                var mon = new Array((2 - (time.getMonth() + 1).toString().length) + 1).join('0') + (time.getMonth() + 1);
+                var day = new Array((2 - time.getDate().toString().length) + 1).join('0') + time.getDate();
+                var hrs = new Array((2 - time.getHours().toString().length) + 1).join('0') + time.getHours();
+                var mins = new Array((2 - time.getMinutes().toString().length) + 1).join('0') + time.getMinutes();
+                var sec = new Array((2 - time.getSeconds().toString().length) + 1).join('0') + time.getSeconds();
+                var mil = new Array((3 - time.getMilliseconds().toString().length) + 1).join('0') + time.getMilliseconds();
+
+                return "" + yrs + mon + day;
+
+            }
+
+
+        } catch (e) {
+            console.log('Error2: ' + e.message);
+        } finally {
+            return;
         }
-        //https://www.carsarrive.com/tab/Transport/ViewLoadComplete.asp?nload_id=4907345&npickup_code=
-        function ViewLoadComplete() {
-            console.log('ViewLoadComplete');
-            var $continue1 = $('#frm2 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
-            $continue1.click();
-        }
-        //https://www.carsarrive.com/tab/Transport/WhereToSend.asp
-        function WhereToSend(user, pickup, delivery) {
 
-            console.log('WhereToSend');
-            var $continue1 = $('#content_contain > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(18) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(1) > a:nth-child(1)');
-            var $username = $('#sdriver_name');
-            var $pickup_date = $('#stransp_pickup_date');
-            var $delivery_date = $('#stransp_delivery_date');
-            var $rapid_ach = $('#nradTerms');
+    } // main
 
-            $username.val(user);
-            $pickup_date.val(pickup).change();
-            $delivery_date.val(delivery);
-            $rapid_ach.click();
+}; //page.onLoadFinished
 
-            $continue1.click();
-            //dosearch();
-        }
-
-
-        function dosearch() {
-            window.location.href = 'https://www.carsarrive.com/tab/TransportManager/Default.asp';
-        }
-
+/*
         function getToday(days) {
             var MyDate = new Date();
             var MyDateString;
@@ -281,15 +451,7 @@ page.onLoadFinished = function() {
 
             return MyDateString;
         }
-
-
-    } // main
-
-
-
-}; //page.onLoadFinished
-
-
+*/
 
 /*
 if (sys.args.length > 1 && sys.args[1] === "-v") {
@@ -417,5 +579,18 @@ setTimeout(function() {
         phantom.exit();
     }, 100);
 }, 20000);
+
+
+phantom.onError = function(msg, trace) {
+  var msgStack = ['PHANTOM ERROR: ' + msg];
+  if (trace && trace.length) {
+    msgStack.push('TRACE:');
+    trace.forEach(function(t) {
+      msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
+    });
+  }
+  console.error(msgStack.join('\n'));
+  phantom.exit(1);
+};
 
 */
