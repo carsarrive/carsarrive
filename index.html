@@ -36,6 +36,8 @@
     <script src="./js/angular-toggle-switch.min.js"></script>
     <link rel="stylesheet" href="./css/angular-toggle-switch-bootstrap-3.css">
 
+    <link rel="apple-touch-icon" href="./img/cars_arrive_bot.png">
+
     <style>
         .hackyhack {
             position: relative;
@@ -52,7 +54,7 @@
         var app = angular.module('app', ['firebase', 'angularMoment', 'ngAnimate', 'ui.bootstrap', 'toggle-switch']);
         app.controller('ctrl', function($scope, $firebaseObject, $firebaseArray) {
 
-            $scope.obj = $firebaseObject(new Firebase('https://carsarrive.firebaseio.com/'));
+            $scope.obj = $firebaseObject(new Firebase('https://carsarrive.firebaseio.com/server/'));
 
             $scope.obj.$bindTo($scope, 'data');
 
@@ -69,10 +71,15 @@
                 //$scope.orderdate = null;
             };
 
-            $scope.dateconvert = function() {
+            $scope.dateconvert1 = function(date) {
                 var datefilter = $filter('date'),
-                    formattedDate = datefilter($scope.data.date, 'MM/dd/yyyy');
-                $scope.data.date = formattedDate;
+                    formattedDate = datefilter($scope.data.pickup, 'MM/dd/yyyy');
+                $scope.data.pickup = formattedDate;
+            }
+            $scope.dateconvert2 = function(date) {
+                var datefilter = $filter('date'),
+                    formattedDate = datefilter($scope.data.deliver, 'MM/dd/yyyy');
+                $scope.data.deliver = formattedDate;
             }
 
             // Disable weekend selection
@@ -158,9 +165,9 @@
                               <button class="btn btn-default" type="button">Pickup Date</button>
                             </span>
                             <input type="text" class="form-control" name="date" placeholder="Date" 
-                              datepicker-popup="{{format}}" ng-model="$parent.data.date" is-open="status.opened" 
+                              datepicker-popup="{{format}}" ng-model="$parent.data.pickup" is-open="status.opened" 
                               min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" 
-                              close-text="Close" ng-change="dateconvert()" ng-disabled="$scope.data.sleep" />
+                              close-text="Close" ng-change="dateconvert1($parent.data.pickup)" ng-disabled="$scope.data.sleep" />
                             <span class="input-group-btn">
                               <button type="button" class="btn btn-default" ng-click="open($event)">
                                 <i class="glyphicon glyphicon-calendar"></i>
@@ -168,6 +175,26 @@
                             </span>
                         </div>
                     </div>
+
+                    <br/>
+
+                    <div class="hackyhack">
+                        <div class="input-group" ng-controller="Datepicker">
+                            <span class="input-group-btn">
+                              <button class="btn btn-default" type="button">Deliver Date</button>
+                            </span>
+                            <input type="text" class="form-control" name="date" placeholder="Date" 
+                              datepicker-popup="{{format}}" ng-model="$parent.data.deliver" is-open="status.opened" 
+                              min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" 
+                              close-text="Close" ng-change="dateconvert2($parent.data.deliver)" ng-disabled="$scope.data.sleep" />
+                            <span class="input-group-btn">
+                              <button type="button" class="btn btn-default" ng-click="open($event)">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                              </button>
+                            </span>
+                        </div>
+                    </div>
+
 
                     <br/>
 
