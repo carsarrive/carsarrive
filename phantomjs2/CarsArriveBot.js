@@ -3,14 +3,23 @@ var sys = require("system"),
     logResources = false,
     jquery = "https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js";
 
-// TODO not available date select max available
-// TODO add ios icon
+// TODO not available date select max available DONE!
+
+phantom.onError = function(msg, trace) {
+  var msgStack = ['PHANTOM ERROR: ' + msg];
+  if (trace && trace.length) {
+    msgStack.push('TRACE:');
+    trace.forEach(function(t) {
+      msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
+    });
+  }
+  console.error(msgStack.join('\n'));
+  phantom.exit(1);
+};
 
 page.open('https://login.carsarrive.com/', function() {
     page.includeJs(jquery, function() {
         page.evaluate(function() {
-
-
 
             $.ajax({
                 accept: "application/json",
@@ -24,13 +33,11 @@ page.open('https://login.carsarrive.com/', function() {
 
                               $.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
                                   if (typeof window.callPhantom === 'function') {
-                                      var args = window.callPhantom(data);
+//                                      var args = window.callPhantom(data);
+                                      window.callPhantom(data);
                                       //alert(args);
                                   }
-
-
-                                  console.log(JSON.stringify(data));
-                                  
+                                  //console.log(JSON.stringify(data));                                  
 
                                   var today = new Date();
                                   var appdate = new Date(data.date);
@@ -39,11 +46,10 @@ page.open('https://login.carsarrive.com/', function() {
                                     return;
                                   }
 
-
                                   if ($('#edit-name--2').length == 1) {
                                       console.log("Logging in");
-                                      $('#edit-name--2').val('marron').change();
-                                      $('#edit-pass--2').val('ale5849').change();
+                                      $('#edit-name--2').val(data.usr).change();
+                                      $('#edit-pass--2').val(data.pwd).change();
                                       $('#edit-submit--2').click();
                                   }
                               }); //$.get
@@ -64,7 +70,7 @@ page.open('https://login.carsarrive.com/', function() {
  */
 page.onConsoleMessage = function(msg, line, source) {
     if (msg.indexOf('JQMIGRATE:') == -1 && msg.length > 0) {
-        console.log('> ' + msg);
+        console.log(msg);
     }
 };
 
@@ -161,7 +167,6 @@ page.onLoadFinished = function() {
                         "timestamp": (new Date()).toString()
                       };
             };
-
             items = results;
         } // Results
 
@@ -190,7 +195,7 @@ page.onLoadFinished = function() {
                 ViewLoadComplete();
                 break;
             case whereToSend:
-                WhereToSend('Marcos', args.pickup, args.deliver);
+                WhereToSend(args.user, args.pickup, args.deliver);
                 break;
             case searchPage:
                 doSearch();
@@ -199,39 +204,40 @@ page.onLoadFinished = function() {
                 confirmed();
                 break;
             default:
-                console.log("Error: " + url);
+                print("Error: " + url);
                 searchAgain();
                 break;
         }
 
 
         function confirmed(){
-          console.log("Finished successfully!");
+          print("Finished successfully!");
           searchAgain();
         }
 
         // function to simulate a confirmed without adding the car
         function test$continue1_click(){
+          print("THIS IS JUST A TEST!!!!");
           window.location.href = confirm;
         }
 
         function doSearch() {
-            console.log('Searching ...');
+            print('Searching ...');
             var submit = "#frm1 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(5) > td:nth-child(1) > a:nth-child(1)";
             // selects for origin & destination
             var $orig = $("#asmSelect0");
             var $dest = $("#asmSelect1");
             var miami = "6_10_12";
             
-            $orig.val("0_0_0").change();
-            $dest.val(miami).change();
+            $orig.val(args.orig).change();
+            $dest.val(args.dest).change();
             $(submit).click();
         }
 
         function checkResults() {
             //var results = $('#loads > tbody > tr').length;
             var results = $('.odd, .even').length;
-            console.log("Results: " + results);
+            print("Results: " + results);
 
             if (!results) {
                 searchAgain();
@@ -260,22 +266,20 @@ page.onLoadFinished = function() {
                     I=i;
                   }
               } else {
-                  console.log("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
+                  print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
               }
             }
 
             if(found){
               // get largest
-              console.log("Multiple found, selected largest");
-//              console.log($($results[I]).find('td:nth-child(9)').html().trim().split('$')[1]);
-              console.log(results.get(I).priceShip);
+              print(JSON.stringify(results.get(I)));
 
               $.ajax({
                   accept: "application/json",
                   type: 'POST',
                   contentType: "application/json; charset=utf-8",
                   dataType: "json",
-                  url: "https://carsarrive.firebaseio.com/loads/.json",
+                  url: "https://carsarrive.firebaseio.com/loads/"+now()+"/.json",
                   data: JSON.stringify(results.get(I)),
                   success: function(){
                               window.location.href = results.get(I).link;
@@ -289,20 +293,33 @@ page.onLoadFinished = function() {
 
         //https://www.carsarrive.com/tab/Transport/ViewLoadShort.asp?nload_id=4907345&npickup_code=
         function ViewLoadShort() {
-            console.log('ViewLoadShort');
+            print('ViewLoadShort');
             var $accept = $('#frmYesNo > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
-            $accept.click();
+
+            if($accept.length==1){
+              $accept.click();
+            }else{
+              print("ViewLoadShort Failed");
+              searchAgain();
+            }
         }
         //https://www.carsarrive.com/tab/Transport/ViewLoadComplete.asp?nload_id=4907345&npickup_code=
         function ViewLoadComplete() {
-            console.log('ViewLoadComplete');
+            print('ViewLoadComplete');
             var $continue1 = $('#frm2 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
-            $continue1.click();
+
+
+            if($continue1.length==1){
+              $continue1.click();
+            }else{
+              print("ViewLoadComplete Failed");
+              searchAgain();
+            }
         }
         //https://www.carsarrive.com/tab/Transport/WhereToSend.asp
         function WhereToSend(user, pickup, deliver) {
 
-            console.log('WhereToSend');
+            print('WhereToSend');
             var $continue1 = $('#content_contain > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(18) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(1) > a:nth-child(1)');
             var $username = $('#sdriver_name');
             var $pickup_date = $('#stransp_pickup_date');
@@ -310,12 +327,35 @@ page.onLoadFinished = function() {
             var $rapid_ach = $('#nradTerms');
 
             $username.val(user).change();
+
             $pickup_date.val(pickup).change();
+            if($pickup_date.val()!=pickup){
+              print("Failed to set $pickup_date");
+              //$pickup_date.find("option:last").attr("selected","selected");
+              $pickup_date[0].selectedIndex = $pickup_date[0].options.length-1;
+              $pickup_date.change();
+              print($pickup_date.val());
+            }
+
             $delivery_date.val(deliver).change();
+            if($delivery_date.val()!=deliver){
+              print("Failed to set $delivery_date");
+              //$delivery_date.find("option:last").attr("selected","selected");
+              $delivery_date[0].selectedIndex = $delivery_date[0].options.length-1;
+              $delivery_date.change();
+              print($delivery_date.val());
+            }
+
             $rapid_ach.click();
             
-            //$continue1.click();
-            test$continue1_click();
+ 
+            if($continue1.length==1){
+             $continue1.click();
+             // test$continue1_click();
+            }else{
+              print("WhereToSend Failed");
+              searchAgain();
+            }
         }
 
 
@@ -323,6 +363,33 @@ page.onLoadFinished = function() {
             window.location.href = searchPage;
         }
 
+        function print(msg){
+            var time = new Date();
+            var hrs = new Array((2 - time.getHours().toString().length) + 1).join('0') +time.getHours();
+            var mins = new Array((2 - time.getMinutes().toString().length) + 1).join('0') +time.getMinutes();
+            var sec = new Array((2 - time.getSeconds().toString().length) + 1).join('0') +time.getSeconds();
+            var mil = new Array((3 - time.getMilliseconds().toString().length) + 1).join('0')+time.getMilliseconds();
+
+          console.log(hrs + ":" + mins + ":" + sec + ":" + mil+" > "+msg);
+
+        }
+
+        function now(){
+
+            var time = new Date();
+            var yrs = time.getFullYear();
+            var mon =new Array((2 - (time.getMonth()+1).toString().length) + 1).join('0') +(time.getMonth()+1);
+            var day =new Array((2 - time.getDate().toString().length) + 1).join('0') +time.getDate();
+            var hrs = new Array((2 - time.getHours().toString().length) + 1).join('0') +time.getHours();
+            var mins = new Array((2 - time.getMinutes().toString().length) + 1).join('0') +time.getMinutes();
+            var sec = new Array((2 - time.getSeconds().toString().length) + 1).join('0') +time.getSeconds();
+            var mil = new Array((3 - time.getMilliseconds().toString().length) + 1).join('0')+time.getMilliseconds();
+
+          return ""+yrs+mon+day;
+
+        }
+
+/*
         function getToday(days) {
             var MyDate = new Date();
             var MyDateString;
@@ -333,7 +400,7 @@ page.onLoadFinished = function() {
 
             return MyDateString;
         }
-
+*/
 
     } // main
 
