@@ -9,51 +9,34 @@ var sys = require("system"),
 page.open('https://login.carsarrive.com/', function() {
     page.includeJs(jquery, function() {
         page.evaluate(function() {
+            $.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
+                if (typeof window.callPhantom === 'function') {
+                    //var args = window.callPhantom(data);
+                    window.callPhantom(data);
+                    //alert(args);
+                }
+                //console.log(JSON.stringify(data));                                  
 
-            $.ajax({
-                accept: "application/json",
-                type: 'POST',
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                url: "https://carsarrive.firebaseio.com/server/.json",
-                headers: {
-                    "X-HTTP-Method-Override": "PATCH"
-                },
-                data: JSON.stringify({
-                    "timestamp": (new Date()).toString()
-                }),
-                success: function() {
+                var today = new Date();
+                var appdate = new Date(data.date);
+                if (appdate < today) {
+                    console.log("Failed datecheck");
+                    return;
+                }
 
-                        $.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
-                            if (typeof window.callPhantom === 'function') {
-                                //                                      var args = window.callPhantom(data);
-                                window.callPhantom(data);
-                                //alert(args);
-                            }
-                            //console.log(JSON.stringify(data));                                  
-
-                            var today = new Date();
-                            var appdate = new Date(data.date);
-                            if (appdate < today) {
-                                console.log("Failed datecheck");
-                                return;
-                            }
-
-                            if ($('#edit-name--2').length == 1) {
-                                console.log("Logging in");
-                                $('#edit-name--2').val(data.usr).change();
-                                $('#edit-pass--2').val(data.pwd).change();
-                                $('#edit-submit--2').click();
-                            }
-                        }); //$.get
-                    } // success
-            }); //$.ajax
-
-        });
-    });
-});
+                if ($('#edit-name--2').length == 1) {
+                    $('#edit-name--2').val(data.usr).change();
+                    $('#edit-pass--2').val(data.pwd).change();
+                    $('#edit-submit--2').click();
+                }
+            }); //$.get
+        });// page.evaluate
+    });//page.includeJs
+});//page.open
 
 
+var loads = 0;
+var args;
 
 
 /**
@@ -62,21 +45,10 @@ page.open('https://login.carsarrive.com/', function() {
  * the string for the message, the line number, and the source identifier.
  */
 page.onConsoleMessage = function(msg, line, source) {
-    if (msg.indexOf('JQMIGRATE:') == -1 && msg.length > 0) {
+    if (msg.indexOf('>') == 13 ) {		
         console.log(msg);
     }
 };
-
-/**
- * From PhantomJS documentation:
- * This callback is invoked when there is a JavaScript alert. The only argument passed to the callback is the string for the message.
- */
-page.onAlert = function(msg) {
-    //console.log('alert!!> ' + msg);
-};
-
-var loads = 0;
-var args;
 
 
 page.onCallback = function(data) {
@@ -89,11 +61,11 @@ page.onCallback = function(data) {
 
 
 page.onLoadFinished = function() {
-    //    console.log("page.onLoadFinished");
+    //console.log("page.onLoadFinished" + page.url);
     loads = loads + 1;
 
 
-    if (loads % 25 === 0 || args.sleep) {
+    if (loads % 50 === 0 || args.sleep) {
         firebasecheck();
     } else if (args && !args.sleep) {
         page.evaluate(main);
@@ -178,7 +150,10 @@ page.onLoadFinished = function() {
             } // Results
 
             var milageLimit = args.milage;
+            var ignoreIds = args.ignore;
 
+
+						
             var url = document.location.href.split('?')[0];
             var login = 'https://login.carsarrive.com/';
             var findLoads = 'https://www.carsarrive.com/tab/Transport/FindLoads.asp';
@@ -191,6 +166,7 @@ page.onLoadFinished = function() {
 
             switch (url) {
                 case login:
+										print("Logged in!");
                     break;
                 case findLoads:
                     checkResults();
@@ -219,7 +195,7 @@ page.onLoadFinished = function() {
 
             function doSearch() {
                 try {
-                    print('Searching ...');
+                    //print('Searching ...');
                     var submit = "#frm1 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(5) > td:nth-child(1) > a:nth-child(1)";
                     // selects for origin & destination
                     var $orig = $("#asmSelect0");
@@ -236,14 +212,13 @@ page.onLoadFinished = function() {
             }
 
             function checkResults() {
-                //var results = $('#loads > tbody > tr').length;
                 try {
                     var results = $('.odd, .even').length;
-                    print("Results: " + results);
 
                     if (!results) {
                         searchAgain();
                     } else {
+												print("Results: " + results);
                         found();
                     }
                 } catch (e) {
@@ -261,19 +236,22 @@ page.onLoadFinished = function() {
 
                     var results = new Results($results);
 
-
-
                     for (var i = 0; i < $results.length; i++) {
+											
 
-                        if (results.get(i).milage < Number(milageLimit)) {
-                            found = true;
-                            if (Number(greedy) < results.get(i).priceShip) {
-                                greedy = results.get(i).priceShip;
-                                I = i;
-                            }
-                        } else {
-                            print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
-                        }
+												if(ignoreIds.indexOf(results.get(i).id) < 0){
+													if (results.get(i).milage < Number(milageLimit)) {
+															found = true;
+															if (Number(greedy) < results.get(i).priceShip) {
+																	greedy = results.get(i).priceShip;
+																	I = i;
+															}
+													} else {
+															print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
+													}
+												}else{
+															print("Load " + results.get(i).id + " is in the ignore list (" + ignoreIds + ")");
+												}
                     }
 
                     if (found) {
@@ -286,12 +264,13 @@ page.onLoadFinished = function() {
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
                             url: "https://carsarrive.firebaseio.com/loads/" + now() + "/.json",
-                            data: JSON.stringify(results.get(I)),
-                            success: function() {
-                                    window.location.href = results.get(I).link;
-                                } // success
+                            data: JSON.stringify(results.get(I))
+                            //,success: function() {                           } // success
                         });
 
+												window.location.href = results.get(I).link;
+
+												
                     } else {
                         searchAgain();
                     }
@@ -383,7 +362,7 @@ page.onLoadFinished = function() {
             }
 
             function confirmed() {
-                print("Finished successfully!");
+                print("Load Assigned!");
                 searchAgain();
             }
 
@@ -431,7 +410,7 @@ page.onLoadFinished = function() {
 
 
         } catch (e) {
-            console.log('Error2: ' + e.message);
+            console.log('main(): ' + e.message);
         } finally {
             return;
         }
@@ -487,6 +466,17 @@ if (logResources === true) {
 */
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * From PhantomJS documentation:
+ * This callback is invoked when there is a JavaScript alert. The only argument passed to the callback is the string for the message.
+ */
+/*
+ page.onAlert = function(msg) {
+    //console.log('alert!!> ' + msg);
+};
+*/
 /*
 page.onInitialized = function() {
     console.log("page.onInitialized");
