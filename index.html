@@ -211,6 +211,20 @@
                         </span>
                     </div>
 
+                    <br/>
+
+                    <div class="input-group">
+                        <span class="input-group-btn">
+                          <button class="btn btn-default" type="button">Ignore ID</button>
+                        </span>
+                        <input name="ignore" placeholder="Ignore" class="form-control" ng-model="data.ignore" ng-required="true">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.milage=data.milage-1"></i></button>
+                        </span>
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-trash" ng-click="data.milage=data.milage+1"></i></button>
+                        </span>
+                    </div>
                 </fieldset>
 
                 <br/>
