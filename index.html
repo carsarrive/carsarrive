@@ -58,7 +58,16 @@
 
             $scope.obj.$bindTo($scope, 'data');
 
+            $scope.isCollapsed = false;
+
+            $scope.toggle = function (){
+
+                            $scope.isCollapsed = !$scope.isCollapsed;
+
+                            } 
+
         });
+
 
         app.controller('Datepicker', function($scope, $filter) {
 
@@ -213,17 +222,22 @@
 
                     <br/>
 
+                    <div ng-show="isCollapsed">
+	                    <div class="well well-lg">{{data.ignore}}</div>
+                    </div>
+
+
                     <div class="input-group">
                         <span class="input-group-btn">
-                          <button class="btn btn-default" type="button">Ignore ID</button>
+                          <button class="btn btn-default" type="button" ng-click="isCollapsed = !isCollapsed;">Ignore ID</button>
                         </span>
-                        <input name="ignore" placeholder="Ignore" class="form-control" ng-model="data.ignore" ng-required="true">
-                        <!--<span class="input-group-btn">
-                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.milage=data.milage-1"></i></button>
+                        <input name="ignore" placeholder="Ignore" class="form-control" ng-model="ignore" ng-required="true">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.ignore=data.ignore+ignore+' ';ignore=''"></i></button>
                         </span>
                         <span class="input-group-btn">
-                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-trash" ng-click="data.milage=data.milage+1"></i></button>
-                        </span>-->
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-trash" ng-click="data.ignore='';ignore=''"></i></button>
+                        </span>
                     </div>
                 </fieldset>
 
