@@ -16,14 +16,14 @@ page.open('https://login.carsarrive.com/', function() {
                     //alert(args);
                 }
                 //console.log(JSON.stringify(data));                                  
-
+/*
                 var today = new Date();
                 var appdate = new Date(data.date);
                 if (appdate < today) {
                     console.log("Failed datecheck");
                     return;
                 }
-
+*/
                 if ($('#edit-name--2').length == 1) {
                     $('#edit-name--2').val(data.usr).change();
                     $('#edit-pass--2').val(data.pwd).change();
@@ -150,6 +150,7 @@ page.onLoadFinished = function() {
             } // Results
 
             var milageLimit = args.milage;
+            var priceLimit = args.price;
             var ignoreIds = args.ignore;
 
 
@@ -162,6 +163,7 @@ page.onLoadFinished = function() {
             var whereToSend = 'https://www.carsarrive.com/tab/Transport/WhereToSend.asp';
             var searchPage = 'https://www.carsarrive.com/tab/TransportManager/Default.asp';
             var confirm = 'https://www.carsarrive.com/tab/Transport/LoadAssigned2.asp';
+            var denied = 'https://www.carsarrive.com/tab/AccessDenied.asp';
 
 
             switch (url) {
@@ -185,6 +187,8 @@ page.onLoadFinished = function() {
                     break;
                 case confirm:
                     confirmed();
+                    break;
+                case denied:
                     break;
                 default:
                     print("Error: " + url);
@@ -240,23 +244,25 @@ page.onLoadFinished = function() {
 											
 
 												if(ignoreIds.indexOf(results.get(i).id) < 0){
-													if (results.get(i).milage < Number(milageLimit)) {
-															found = true;
-															if (Number(greedy) < results.get(i).priceShip) {
-																	greedy = results.get(i).priceShip;
-																	I = i;
-															}
-													} else {
-															print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
-													}
+                          if (results.get(i).priceShip > Number(priceLimit)) {
+													  if (results.get(i).milage < Number(milageLimit)){
+															  found = true;
+															  if (Number(greedy) < results.get(i).priceShip) {
+																	  greedy = results.get(i).priceShip;
+																	  I = i;
+															  }
+													  } else {
+															  print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
+													  }
+                          } else {
+															  print("Load " + results.get(i).id + " not meet price " + results.get(i).priceShip);
+                          }
 												}else{
 															print("Load " + results.get(i).id + " is in the ignore list (" + ignoreIds + ")");
 												}
                     }
 
                     if (found) {
-                        // get largest
-                        print(JSON.stringify(results.get(I)));
 
                         $.ajax({
                             accept: "application/json",
@@ -267,6 +273,8 @@ page.onLoadFinished = function() {
                             data: JSON.stringify(results.get(I))
                             //,success: function() {                           } // success
                         });
+
+                        print(JSON.stringify(results.get(I)));
 
 												window.location.href = results.get(I).link;
 
