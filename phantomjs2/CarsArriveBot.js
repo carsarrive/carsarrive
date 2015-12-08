@@ -208,6 +208,7 @@ page.onLoadFinished = function() {
 
                     $orig.val(args.orig).change();
                     $dest.val(args.dest).change();
+
                     $(submit).click();
                 } catch (e) {
                     console.log('doSearch(): ' + e.message);
@@ -244,8 +245,8 @@ page.onLoadFinished = function() {
 											
 
 												if(ignoreIds.indexOf(results.get(i).id) < 0){
-                          if (results.get(i).priceShip > Number(priceLimit)) {
-													  if (results.get(i).milage < Number(milageLimit)){
+                          if (results.get(i).priceShip >= Number(priceLimit)) {
+													  if (results.get(i).milage <= Number(milageLimit)){
 															  found = true;
 															  if (Number(greedy) < results.get(i).priceShip) {
 																	  greedy = results.get(i).priceShip;
@@ -358,7 +359,7 @@ page.onLoadFinished = function() {
 
                     if ($continue1.length == 1) {
                         $continue1.click();
-                        // test$continue1_click();
+                        //test$continue1_click();
                     } else {
                         print("WhereToSend Failed");
                         searchAgain();
