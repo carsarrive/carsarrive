@@ -222,9 +222,24 @@
 
                     <br/>
 
-                    <div ng-show="isCollapsed">
-	                    <div class="well well-lg">{{data.ignore}}</div>
+                    <div class="input-group">
+                        <span class="input-group-btn">
+                          <button class="btn btn-default" type="button">Price Min</button>
+                        </span>
+                        <input type="number" name="price" placeholder="Price" class="form-control" ng-model="data.price" ng-required="true">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus" ng-click="data.price=data.price-1"></i></button>
+                        </span>
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.price=data.price+1"></i></button>
+                        </span>
                     </div>
+
+                    <br/>
+
+	                    <div ng-show="isCollapsed">
+		                    <div class="well well-lg">{{data.ignore}}</div>
+	                    </div>
 
 
                     <div class="input-group">
