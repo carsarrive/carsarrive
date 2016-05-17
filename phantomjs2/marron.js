@@ -61,7 +61,7 @@ page.onCallback = function(data) {
 
 
 page.onLoadFinished = function() {
-    //console.log("page.onLoadFinished" + page.url);
+    //console.log("page.onLoadFinished " + page.url);
     loads = loads + 1;
 
 
@@ -74,41 +74,52 @@ page.onLoadFinished = function() {
     function firebasecheck() {
         page.evaluate(function(main) {
             try {
-                $.ajax({
-                    accept: "application/json",
-                    type: 'POST',
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    url: "https://carsarrive.firebaseio.com/server/.json",
-                    headers: {
-                        "X-HTTP-Method-Override": "PATCH"
-                    },
-                    data: JSON.stringify({
-                        "timestamp": (new Date()).toString()
-                    }),
-                    success: function() {
+								var args;
+								if (typeof window.callPhantom === 'function') {
+										args = window.callPhantom();
+								}
 
-                            $.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
-                                try {
-                                    if (typeof window.callPhantom === 'function') {
-                                        var args = window.callPhantom(data);
-                                        //alert(args);
-                                    }
-                                    //console.log(JSON.stringify(data));
-                                    if (!data.sleep) {
-                                        main();
-                                    } else {
-                                        setTimeout(function() {
-                                            window.location.href = "https://www.carsarrive.com/tab/TransportManager/Default.asp";
-                                        }, 6666);
-                                    }
-                                } catch (e) {
-                                    console.log('firebasecheck(): ' + e.message);
-                                    main();
-                                }
-                            }); //$.get
-                        } // success
-                });
+								$.get("https://carsarrive.firebaseio.com/server/.json", function(data) {
+									//sync local ignore list with remote
+									if(args.localignore!=null){
+										data.ignore +=args.localignore.join(" ")+" ";
+									}
+									
+									$.ajax({
+											accept: "application/json",
+											type: 'POST',
+											contentType: "application/json; charset=utf-8",
+											dataType: "json",
+											url: "https://carsarrive-remedios.firebaseio.com/server/.json",
+											headers: {
+													"X-HTTP-Method-Override": "PATCH"
+											},
+											data: JSON.stringify({
+													"timestamp": (new Date()).toString(),
+													"ignore": data.ignore
+											}),
+											success: function() {
+												try {
+														if (typeof window.callPhantom === 'function') {															
+																var args = window.callPhantom(data);
+																//alert(args);
+														}
+														//console.log(JSON.stringify(data));
+														if (!data.sleep) {
+																main();
+														} else {
+																setTimeout(function() {
+																		window.location.href = "https://www.carsarrive.com/tab/TransportManager/Default.asp";
+																}, 6666);
+														}
+												} catch (e) {
+														console.log('firebasecheck(): ' + e.message);
+														main();
+												}
+
+											} // success
+									});
+								}); //$.get
             } catch (e) {
                 console.log('Error1: ' + e.message);
                 main();
@@ -134,7 +145,7 @@ page.onLoadFinished = function() {
                         "id": $(items[i]).find('> td:nth-child(1)').html().trim(),
                         "cars": $(items[i]).find('> td:nth-child(2)').html().trim(),
                         "model": $(items[i]).find('> td:nth-child(3)').html().trim(),
-                        "origcity": $(items[i]).find('> td:nth-child(4)').html().trim(),
+                        "origCity": $(items[i]).find('> td:nth-child(4)').html().trim(),
                         "origargse": $(items[i]).find('> td:nth-child(5)').html().trim(),
                         "destCity": $(items[i]).find('> td:nth-child(6)').html().trim(),
                         "destargse": $(items[i]).find('> td:nth-child(7)').html().trim(),
@@ -149,9 +160,13 @@ page.onLoadFinished = function() {
                 items = results;
             } // Results
 
-            var milageLimit = args.milage;
+            var milageMax = args.milage;
             var priceLimit = args.price;
             var ignoreIds = args.ignore;
+						
+						if(args.localignore!=null){
+							ignoreIds += args.localignore.join(" ")+" ";
+						}
 
 
 						
@@ -204,7 +219,8 @@ page.onLoadFinished = function() {
                     // selects for origin & destination
                     var $orig = $("#asmSelect0");
                     var $dest = $("#asmSelect1");
-                    var miami = "6_10_12";
+                    // var miami = "6_10_12";
+                    // var florida = "6_10_0";
 
                     $orig.val(args.orig).change();
                     $dest.val(args.dest).change();
@@ -242,29 +258,33 @@ page.onLoadFinished = function() {
                     var results = new Results($results);
 
                     for (var i = 0; i < $results.length; i++) {
-											
 
-												if(ignoreIds.indexOf(results.get(i).id) < 0){
-                          if (results.get(i).priceShip >= Number(priceLimit)) {
-													  if (results.get(i).milage <= Number(milageLimit)){
-															  found = true;
-															  if (Number(greedy) < results.get(i).priceShip) {
-																	  greedy = results.get(i).priceShip;
-																	  I = i;
-															  }
-													  } else {
-															  print("Load " + results.get(i).id + " exceeds milage " + results.get(i).milage);
-													  }
-                          } else {
-															  print("Load " + results.get(i).id + " not meet price " + results.get(i).priceShip);
-                          }
+												if(ignoreIds.indexOf(results.get(i).id) < 0 ){
+													if (results.get(i).cars == Number(1)) {
+														if (results.get(i).priceShip >= Number(priceLimit)) {
+															if (results.get(i).milage <= Number(milageMax)){
+																	found = true;
+																	if (Number(greedy) < results.get(i).priceShip) {
+																			greedy = results.get(i).priceShip;
+																			I = i;
+																	}
+															} else {
+																			//print(results.get(i).id + " exceeds milage " + results.get(i).milage);
+															}
+														} else {
+																		//print(results.get(i).id + " not meet price " + results.get(i).priceShip);
+														}
+													} else {
+																//print(results.get(i).id + " has more than 1 car");
+													}
 												}else{
-															print("Load " + results.get(i).id + " is in the ignore list (" + ignoreIds + ")");
+													//print(results.get(i).id + " is in the ignore list");
 												}
                     }
 
                     if (found) {
-
+											print("found "+results.get(I).id);
+												/*
                         $.ajax({
                             accept: "application/json",
                             type: 'POST',
@@ -274,11 +294,17 @@ page.onLoadFinished = function() {
                             data: JSON.stringify(results.get(I))
                             //,success: function() {                           } // success
                         });
+												*/
+												if (typeof window.callPhantom === 'function') {
+														if(args.localignore==null){
+															args.localignore = [];
+														}
+														args.localignore.push(results.get(I).id);
+														window.callPhantom(args);
+												}
 
                         print(JSON.stringify(results.get(I)));
-
 												window.location.href = results.get(I).link;
-
 												
                     } else {
                         searchAgain();
