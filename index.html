@@ -168,6 +168,21 @@
                 <br/>
                 <br/>
                 <fieldset ng-disabled="!data.sleep">
+								
+										<div class="input-group">
+                        <span class="input-group-btn">
+                          <button class="btn btn-default" type="button">Loads</button>
+                        </span>
+                        <input type="number" name="loads" placeholder="Loads" class="form-control" ng-disabled="true" ng-model="data.loads" ng-required="true">
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus" ng-click="data.loads=data.loads-1"></i></button>
+                        </span>
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.loads=data.loads+1"></i></button>
+                        </span>
+                    </div>
+
+                    <br/>
                     <div class="hackyhack">
                         <div class="input-group" ng-controller="Datepicker">
                             <span class="input-group-btn">
@@ -234,8 +249,8 @@
                           <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.price=data.price+1"></i></button>
                         </span>
                     </div>
-
-                    <br/>
+										
+										<br/>
 
 	                    <div ng-show="isCollapsed">
 		                    <div class="well well-lg">{{data.ignore}}</div>
