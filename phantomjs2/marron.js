@@ -419,8 +419,8 @@ page.onLoadFinished = function() {
 
 
                     if ($continue1.length == 1) {
-                        //$continue1.click();
-                        test$continue1_click();
+                        $continue1.click();
+                        //test$continue1_click();
                     } else {
                         print("WhereToSend Failed");
                         searchAgain();
