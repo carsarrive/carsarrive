@@ -175,7 +175,7 @@
                         </span>
                         <input type="number" name="loads" placeholder="Loads" class="form-control" ng-disabled="true" ng-model="data.loads" ng-required="true">
                         <span class="input-group-btn">
-                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus" ng-click="data.loads=data.loads-1"></i></button>
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus" ng-disabled="data.loads<1" ng-click="data.loads=data.loads-1"></i></button>
                         </span>
                         <span class="input-group-btn">
                           <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.loads=data.loads+1"></i></button>
