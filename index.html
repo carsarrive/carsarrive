@@ -162,7 +162,7 @@
     <form name="myform" class="formwrapper" novalidate>
         <div class="form-group">
             <div class="col-md-6">
-                <h1>CarsArriveBot</h1>
+                <h1>Marron</h1>
                 <time title="{{ data.timestamp | amDateFormat: 'dddd, MMMM Do YYYY, h:mm a' }}" am-time-ago="data.timestamp"></time> 
                 <!--<p>{{data.timestamp}}</p>-->
                 <br/>
@@ -175,10 +175,10 @@
                         </span>
                         <input type="number" name="loads" placeholder="Loads" class="form-control" ng-disabled="true" ng-model="data.loads" ng-required="true">
                         <span class="input-group-btn">
-                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus" ng-disabled="data.loads<1" ng-click="data.loads=data.loads-1"></i></button>
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-minus" ng-click="data.loads-=1"></i></button>
                         </span>
                         <span class="input-group-btn">
-                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.loads=data.loads+1"></i></button>
+                          <button type="button" class="btn btn-default"><i class="glyphicon glyphicon-plus" ng-click="data.loads+=1"></i></button>
                         </span>
                     </div>
 
