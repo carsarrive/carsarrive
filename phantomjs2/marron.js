@@ -189,7 +189,7 @@ page.onLoadFinished = function() {
 							// do something here
 
 							console.log("args.found-args.loads==0 " + args.found-args.loads==0);
-							if(args.loads-args.found<1){
+							if(args.found>=vargs.loads){
 								console.log("in ");
 
 								// were done searching
