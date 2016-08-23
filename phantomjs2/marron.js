@@ -354,7 +354,8 @@ page.onLoadFinished = function() {
             function ViewLoadShort() {
                 try {
                     print('ViewLoadShort');
-                    var $accept = $('#frmYesNo > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
+                    //var $accept = $('#frmYesNo > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
+                    var $accept = $('#frmYesNo > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > input:nth-child(1)');
 
                     if ($accept.length == 1) {
                         $accept.click();
@@ -372,7 +373,6 @@ page.onLoadFinished = function() {
                 try {
                     print('ViewLoadComplete');
                     var $continue1 = $('#frm2 > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > a:nth-child(1)');
-
 
                     if ($continue1.length == 1) {
                         $continue1.click();
