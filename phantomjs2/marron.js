@@ -163,7 +163,7 @@ page.onLoadFinished = function() {
                         "milage": Number($(items[i]).find('> td:nth-child(8)').html().trim()),
                         "priceShip": Number($(items[i]).find('> td:nth-child(9)').html().trim().split('$')[1]),
                         "priceMile": Number($(items[i]).find('> td:nth-child(10)').html().trim().split('$')[1]),
-                        "link": $(items[i]).find('> td:nth-child(11) > a:nth-child(1)').attr('href').trim(),
+                        "link": "https://www.carsarrive.com"+$(items[i]).find('> td:nth-child(11) > a:nth-child(1)').attr('href').trim(),
                         "comments": $(items[i]).find('> td:nth-child(12)').html().trim(),
                         "timestamp": (new Date()).toString()
                     };
