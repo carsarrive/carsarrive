@@ -181,20 +181,12 @@ page.onLoadFinished = function() {
 						}
 
 						if(args.found!=null){
-							console.log("args.found!=null " + args.found);
-							
-							console.log("args.loads " + args.loads);
-
-							// the loads has been updated locally
-							// do something here
-
-							console.log("args.found-args.loads==0 " + args.found-args.loads==0);
-							if(args.found>=vargs.loads){
-								console.log("in ");
+							if(args.found>args.loads){
 
 								// were done searching
 								// loop to search page
                 searchAgain();
+								return;
 							}
 						}
 
@@ -252,7 +244,9 @@ page.onLoadFinished = function() {
                     // var florida = "6_10_0";
 
                     $orig.val(args.orig).change();
+                    //$orig.val("6_10_0").change();
                     $dest.val(args.dest).change();
+                    //$dest.val("0_0_0").change();
 
                     $(submit).click();
                 } catch (e) {
@@ -443,11 +437,11 @@ page.onLoadFinished = function() {
             }
 
 
-            function searchAgain() {
+            function searchAgain() {							
                 try {
                     window.location.href = searchPage;
                 } catch (e) {
-                    console.log('searchAgain(): ' + e.message);
+                    print('searchAgain(): ' + e.message);
                     searchAgain();
                 }
             }
